@@ -1,10 +1,9 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { FcGoogle } from "react-icons/fc";
-
+import { signIn } from "next-auth/react";
 interface AuthScreenProps {
   onClose: () => void;
 }

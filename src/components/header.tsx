@@ -2,12 +2,19 @@
 
 import { LuRefreshCw } from "react-icons/lu";
 import { IoMdSettings } from "react-icons/io";
-import { type Session } from "next-auth";
 import { useState } from "react";
+import { type Session } from "next-auth";
 import { motion, AnimatePresence } from "motion/react";
+import { signOut } from "next-auth/react";
 
 import { Button } from "~/components/ui/button";
 import AuthScreen from "./auth-screen";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 interface HeaderProps {
   session: Session;
@@ -40,13 +47,28 @@ export default function Header({ session }: HeaderProps) {
               </div>
             </div>
 
-            <Button
-              variant="custom"
-              className="h-8 w-8"
-              onClick={() => !session && setShowAuth(true)}
-            >
-              <IoMdSettings className="!h-5 !w-5" />
-            </Button>
+            {session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="custom" className="h-8 w-8">
+                    <IoMdSettings className="!h-5 !w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="custom"
+                className="h-8 w-8"
+                onClick={() => setShowAuth(true)}
+              >
+                <IoMdSettings className="!h-5 !w-5" />
+              </Button>
+            )}
           </div>
         </div>
       </header>
