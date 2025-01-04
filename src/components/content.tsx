@@ -3,7 +3,7 @@
 import { type Session } from "next-auth";
 import { Button } from "./ui/button";
 import Image from "next/image";
-import { generateFriend } from "~/app/actions";
+import { generateFriend, getIp } from "~/server/actions";
 interface ContentProps {
   session: Session;
 }
@@ -23,6 +23,7 @@ export default function Content({ session }: ContentProps) {
         Start conversation
       </Button>
       <Button onClick={generateFriend}>Generate Friend</Button>
+      <Button onClick={getIp}>Get IP</Button>
     </div>
   );
 }
