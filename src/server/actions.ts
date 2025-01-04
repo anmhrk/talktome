@@ -44,9 +44,13 @@ export async function generateFriend() {
     };
 
     const uploadResponse = await utApi.uploadFiles(
-      new File([Buffer.from(data.base64Image, "base64")], `${data.name}.png`, {
-        type: "image/png",
-      }),
+      new File(
+        [Buffer.from(data.base64Image, "base64")],
+        `${data.name}-${session.user.id}.png`,
+        {
+          type: "image/png",
+        },
+      ),
     );
 
     const imageUrl = uploadResponse?.data?.url;

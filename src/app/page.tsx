@@ -16,6 +16,7 @@ export interface Friend {
 export default function HomePage() {
   const [friend, setFriend] = useState<Friend | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creatingFriend, setCreatingFriend] = useState(false);
 
   useEffect(() => {
     async function initializeFriend() {
@@ -24,8 +25,10 @@ export default function HomePage() {
         if (dbFriend) {
           setFriend(dbFriend as Friend);
         } else {
+          setCreatingFriend(true);
           const newFriend = await generateFriend();
           setFriend(newFriend);
+          setCreatingFriend(false);
         }
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unknown error");
@@ -40,7 +43,11 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       <Header friend={friend} loading={loading} />
-      <Content friend={friend} loading={loading} />
+      <Content
+        friend={friend}
+        loading={loading}
+        creatingFriend={creatingFriend}
+      />
 
       <Footer />
     </main>
