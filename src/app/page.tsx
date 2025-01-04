@@ -9,7 +9,8 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen text-neutral-900">
       <Header session={session!} />
-      <Content />
+      <Content session={session!} />
+
       <footer className="fixed bottom-3 left-4 right-4 flex justify-center text-xs text-neutral-600">
         <div className="flex items-center gap-4 text-[13px]">
           {/* add Link with hrefs instead of buttons */}
