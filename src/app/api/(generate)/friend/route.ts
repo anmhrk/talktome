@@ -58,15 +58,10 @@ export async function POST() {
       throw new Error("Either there was an error or I'm out of API credits.");
     }
 
-    const blob = Buffer.from(base64Image, "base64");
-    const imageFile = new File([blob], `${friendData.name}.png`, {
-      type: "image/png",
-    });
-
     return NextResponse.json({
       name: friendData.name,
       description: friendData.description,
-      imageFile,
+      base64Image: base64Image,
     });
   } catch (error) {
     console.error(error);

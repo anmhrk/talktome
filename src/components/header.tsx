@@ -30,15 +30,14 @@ export default function Header({ friend, loading }: HeaderProps) {
             <div className="flex items-center gap-3.5">
               <span className="font-serif text-xl">{friend?.name}</span>
               <div className="relative">
-                {/* <Image
+                <Image
                   src={friend?.imageUrl ?? ""}
                   alt={friend?.name ?? ""}
-                  className="h-8 w-8 rounded-full"
+                  className="h-12 w-12 rounded-full"
                   width={32}
                   height={32}
-                /> */}
-                <div className="h-12 w-12 rounded-full bg-neutral-200" />
-                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white bg-green-500" />
+                />
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500" />
               </div>
             </div>
 

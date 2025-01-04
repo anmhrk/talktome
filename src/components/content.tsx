@@ -18,13 +18,13 @@ export default function Content({ friend, loading }: ContentProps) {
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-4">
       <Image
-        src="/pic.jpg"
+        src={friend.imageUrl}
         width={128}
         height={128}
-        alt="avatar"
-        className="rounded-full"
+        alt={friend.name}
+        className="rounded-full object-cover shadow-lg"
       />
-      <p className="mb-2 text-lg">Faith wants to talk to you</p>
+      <p className="mb-2 text-lg">{friend.name} wants to talk to you</p>
       <Button className="rounded-full bg-neutral-900 px-6 py-2 text-white hover:bg-neutral-800">
         Start conversation
       </Button>

@@ -6,6 +6,7 @@ import Footer from "~/components/footer";
 import { useEffect, useState } from "react";
 import { generateFriend, loadFriend } from "~/server/actions";
 import { toast } from "sonner";
+
 export interface Friend {
   name: string;
   description: string;

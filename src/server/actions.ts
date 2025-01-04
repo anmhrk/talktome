@@ -5,6 +5,9 @@ import { auth } from "./auth";
 import { db } from "./db";
 import { friends } from "./db/schema";
 import { eq } from "drizzle-orm";
+import { UTApi } from "uploadthing/server";
+
+const utApi = new UTApi();
 
 export async function generateFriend() {
   try {
@@ -37,21 +40,35 @@ export async function generateFriend() {
     const data = (await response.json()) as {
       name: string;
       description: string;
-      imageUrl: string;
+      base64Image: string;
     };
 
-    // uploadthing logic here. imageUrl returned is actually a file. needs changing.
+    const uploadResponse = await utApi.uploadFiles(
+      new File([Buffer.from(data.base64Image, "base64")], `${data.name}.png`, {
+        type: "image/png",
+      }),
+    );
+
+    const imageUrl = uploadResponse?.data?.url;
+
+    if (!imageUrl) {
+      throw new Error("Failed to upload image");
+    }
 
     if (session) {
       await db.insert(friends).values({
         name: data.name,
         description: data.description,
-        imageUrl: data.imageUrl,
+        imageUrl: imageUrl,
         createdBy: session.user.id,
       });
     }
 
-    return data;
+    return {
+      name: data.name,
+      description: data.description,
+      imageUrl: imageUrl,
+    };
   } catch (error) {
     throw error;
   }
