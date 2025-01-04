@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import Image from "next/image";
 import { generateFriend, getIp } from "../server/actions";
 import { useFriend } from "./friend-context";
+import { signOut } from "next-auth/react";
 
 interface ContentProps {
   session: Session;
@@ -30,6 +31,7 @@ export default function Content({ session }: ContentProps) {
       </Button>
       <Button onClick={generateFriend}>Generate Friend</Button>
       <Button onClick={getIp}>Get IP</Button>
+      <Button onClick={() => signOut()}>Sign out</Button>
     </div>
   );
 }
