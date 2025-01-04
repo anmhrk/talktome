@@ -55,6 +55,9 @@ export const authConfig = {
     sessionsTable: sessions,
     verificationTokensTable: verificationTokens,
   }),
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
@@ -63,5 +66,8 @@ export const authConfig = {
         id: user.id,
       },
     }),
+    authorized: async ({ auth }) => {
+      return !!auth;
+    },
   },
 } satisfies NextAuthConfig;

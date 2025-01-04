@@ -3,20 +3,17 @@
 import { HiRefresh } from "react-icons/hi";
 import { IoMdSettings } from "react-icons/io";
 import { useState } from "react";
-import { type Session } from "next-auth";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "~/components/ui/button";
-import AuthScreen from "./auth-screen";
 import Image from "next/image";
-import { useFriend } from "./friend-context";
+import { type Friend } from "~/app/page";
 
 interface HeaderProps {
-  session: Session;
+  friend: Friend | null;
+  loading: boolean;
 }
 
-export default function Header({ session }: HeaderProps) {
-  const { friend, loading } = useFriend();
-  const [showAuth, setShowAuth] = useState(false);
+export default function Header({ friend, loading }: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
 
   if (loading) return <div>Loading...</div>;
@@ -49,11 +46,7 @@ export default function Header({ session }: HeaderProps) {
               variant="custom"
               className="h-8 w-8"
               onClick={() => {
-                if (!session) {
-                  setShowAuth(true);
-                } else {
-                  // setShowProfile(true);
-                }
+                setShowProfile(true);
               }}
             >
               <IoMdSettings className="!h-5 !w-5" />
@@ -63,8 +56,6 @@ export default function Header({ session }: HeaderProps) {
       </header>
 
       <AnimatePresence>
-        {showAuth && <AuthScreen onClose={() => setShowAuth(false)} />}
-
         {showProfile && (
           <motion.div
             className="fixed inset-0 z-50"

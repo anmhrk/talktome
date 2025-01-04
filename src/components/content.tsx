@@ -1,20 +1,19 @@
 "use client";
 
-import { type Session } from "next-auth";
 import { Button } from "./ui/button";
 import Image from "next/image";
-import { generateFriend, getIp } from "../server/actions";
-import { useFriend } from "./friend-context";
 import { signOut } from "next-auth/react";
+import { type Friend } from "~/app/page";
+import { generateFriend } from "~/server/actions";
 
 interface ContentProps {
-  session: Session;
+  friend: Friend | null;
+  loading: boolean;
 }
 
-export default function Content({ session }: ContentProps) {
-  const { friend, loading } = useFriend();
-
+export default function Content({ friend, loading }: ContentProps) {
   if (loading) return <div>Loading...</div>;
+  if (!friend) return <div>No friend found</div>;
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-4">
@@ -30,7 +29,6 @@ export default function Content({ session }: ContentProps) {
         Start conversation
       </Button>
       <Button onClick={generateFriend}>Generate Friend</Button>
-      <Button onClick={getIp}>Get IP</Button>
       <Button onClick={() => signOut()}>Sign out</Button>
     </div>
   );

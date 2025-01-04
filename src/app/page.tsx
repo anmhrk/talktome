@@ -1,38 +1,47 @@
+"use client";
+
 import Content from "~/components/content";
 import Header from "~/components/header";
-import { LuArrowUpRight } from "react-icons/lu";
-import { auth } from "~/server/auth";
-import FriendHandler from "~/components/friend-handler";
-import Link from "next/link";
+import Footer from "~/components/footer";
+import { useEffect, useState } from "react";
+import { generateFriend, loadFriend } from "~/server/actions";
+import { toast } from "sonner";
+export interface Friend {
+  name: string;
+  description: string;
+  imageUrl: string;
+}
 
-export default async function HomePage() {
-  const session = await auth();
+export default function HomePage() {
+  const [friend, setFriend] = useState<Friend | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function initializeFriend() {
+      try {
+        const dbFriend = await loadFriend();
+        if (dbFriend) {
+          setFriend(dbFriend as Friend);
+        } else {
+          const newFriend = await generateFriend();
+          setFriend(newFriend);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void initializeFriend();
+  }, []);
 
   return (
-    <main className="min-h-screen text-neutral-900">
-      <FriendHandler session={session!}>
-        <Header session={session!} />
-        <Content session={session!} />
-      </FriendHandler>
+    <main className="min-h-screen">
+      <Header friend={friend} loading={loading} />
+      <Content friend={friend} loading={loading} />
 
-      <footer className="fixed bottom-3 left-4 right-4 flex justify-center text-xs text-neutral-600">
-        <div className="flex items-center gap-4 text-[13px]">
-          <Link
-            href="https://github.com/anmhrk/talktome"
-            className="flex items-center hover:text-neutral-800 hover:underline"
-          >
-            github
-            <LuArrowUpRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="https://x.com/anmhrk"
-            className="flex items-center hover:text-neutral-800 hover:underline"
-          >
-            x
-            <LuArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
