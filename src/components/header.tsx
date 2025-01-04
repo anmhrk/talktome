@@ -7,14 +7,19 @@ import { type Session } from "next-auth";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "~/components/ui/button";
 import AuthScreen from "./auth-screen";
+import Image from "next/image";
+import { useFriend } from "./friend-context";
 
 interface HeaderProps {
   session: Session;
 }
 
 export default function Header({ session }: HeaderProps) {
+  const { friend, loading } = useFriend();
   const [showAuth, setShowAuth] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <>
@@ -26,15 +31,15 @@ export default function Header({ session }: HeaderProps) {
             </Button>
 
             <div className="flex items-center gap-3.5">
-              <span className="font-serif text-xl">Faith</span>
+              <span className="font-serif text-xl">{friend?.name}</span>
               <div className="relative">
-                {/* <Image
-                src="/avatar.png"
-                alt="John Doe"
-                className="h-8 w-8 rounded-full"
-                width={32}
-                height={32}
-              /> */}
+                <Image
+                  src={friend?.imageUrl ?? ""}
+                  alt={friend?.name ?? ""}
+                  className="h-8 w-8 rounded-full"
+                  width={32}
+                  height={32}
+                />
                 <div className="h-12 w-12 rounded-full bg-neutral-200" />
                 <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white bg-green-500" />
               </div>

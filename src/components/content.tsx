@@ -3,12 +3,18 @@
 import { type Session } from "next-auth";
 import { Button } from "./ui/button";
 import Image from "next/image";
-import { generateFriend, getIp } from "~/server/actions";
+import { generateFriend, getIp } from "../server/actions";
+import { useFriend } from "./friend-context";
+
 interface ContentProps {
   session: Session;
 }
 
 export default function Content({ session }: ContentProps) {
+  const { friend, loading } = useFriend();
+
+  if (loading) return <div>Loading...</div>;
+
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-4">
       <Image
