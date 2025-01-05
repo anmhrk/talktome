@@ -4,7 +4,7 @@ import { ratelimit } from "./ratelimit";
 import { auth } from "./auth";
 import { db } from "./db";
 import { friends } from "./db/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
 
 const utApi = new UTApi();
@@ -79,15 +79,19 @@ export async function generateFriend() {
 }
 
 export async function loadFriend() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
+  try {
+    const session = await auth();
+    if (!session) throw new Error("Unauthorized");
 
-  const [latestFriend] = await db
-    .select()
-    .from(friends)
-    .where(eq(friends.createdBy, session.user.id))
-    .orderBy(friends.createdAt)
-    .limit(1);
+    const [latestFriend] = await db
+      .select()
+      .from(friends)
+      .where(eq(friends.createdBy, session.user.id))
+      .orderBy(desc(friends.createdAt))
+      .limit(1);
 
-  return latestFriend;
+    return latestFriend;
+  } catch (error) {
+    throw error;
+  }
 }

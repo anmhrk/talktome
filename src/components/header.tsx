@@ -8,21 +8,32 @@ import { Button } from "~/components/ui/button";
 import Image from "next/image";
 import { type Friend } from "~/app/page";
 import { Skeleton } from "./ui/skeleton";
+import NewFriend from "./new-friend";
 
 interface HeaderProps {
   friend: Friend | null;
   loading: boolean;
+  setCreateNewFriend: (create: boolean) => void;
 }
 
-export default function Header({ friend, loading }: HeaderProps) {
+export default function Header({
+  friend,
+  loading,
+  setCreateNewFriend,
+}: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
+  const [showNewFriend, setShowNewFriend] = useState(false);
 
   return (
     <>
       <header className="min-h-16 w-full border-b border-gray-100">
         <div className="mx-auto max-w-3xl px-3 py-2">
           <div className="flex items-center justify-between">
-            <Button variant="custom" className="h-8 w-8">
+            <Button
+              variant="custom"
+              className="h-8 w-8"
+              onClick={() => setShowNewFriend(true)}
+            >
               <HiRefresh className="!h-5 !w-5" />
             </Button>
 
@@ -73,6 +84,13 @@ export default function Header({ friend, loading }: HeaderProps) {
           >
             {/* TODO: make profile later */}
           </motion.div>
+        )}
+
+        {showNewFriend && (
+          <NewFriend
+            setShowNewFriend={setShowNewFriend}
+            setCreateNewFriend={setCreateNewFriend}
+          />
         )}
       </AnimatePresence>
     </>

@@ -2,7 +2,6 @@
 
 import { Button } from "./ui/button";
 import Image from "next/image";
-import { signOut } from "next-auth/react";
 import { type Friend } from "~/app/page";
 
 interface ContentProps {
@@ -31,18 +30,17 @@ export default function Content({
         <>
           <Image
             src={friend?.imageUrl ?? ""}
-            width={128}
-            height={128}
+            width={180}
+            height={180}
             alt={friend?.name ?? ""}
             className="rounded-full object-cover shadow-md"
           />
           <p className="mb-2 font-serif text-lg">
             {friend?.name} wants to talk to you
           </p>
-          <Button className="rounded-full bg-neutral-900 px-6 py-2 text-white hover:bg-neutral-800">
+          <Button className="rounded-xl bg-[#F5F5F4] text-neutral-900 shadow-none hover:bg-[#F5F5F4]">
             Start conversation
           </Button>
-          <Button onClick={() => signOut()}>Sign out</Button>
         </>
       )}
     </div>
