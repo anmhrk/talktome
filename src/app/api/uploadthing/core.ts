@@ -4,8 +4,6 @@ import { auth } from "~/server/auth";
 
 const f = createUploadthing();
 
-const session = await auth();
-
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
@@ -22,6 +20,7 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async () => {
       // This code runs on your server before upload
+      const session = await auth();
       const user = session?.user;
 
       // If you throw, the user will not be able to upload
