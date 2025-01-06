@@ -41,6 +41,7 @@ export async function generateFriend() {
     const data = (await response.json()) as {
       name: string;
       description: string;
+      voice: string;
       base64Image: string;
     };
 
@@ -64,6 +65,7 @@ export async function generateFriend() {
       await db.insert(friends).values({
         name: data.name,
         description: data.description,
+        voice: data.voice,
         imageUrl: imageUrl,
         createdBy: session.user.id,
       });
@@ -117,8 +119,6 @@ export async function generateResponse(message: string, friendId: string) {
       if (contentType?.includes("application/json")) {
         const error = (await response.json()) as { message: string };
         throw new Error(error.message || "An error occurred");
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
       }
     }
 

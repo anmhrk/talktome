@@ -116,6 +116,7 @@ export const friends = createTable("friend", {
   name: varchar("name", { length: 255 }),
   description: varchar("description"),
   imageUrl: varchar("image_url"),
+  voice: varchar("voice", { length: 255 }),
   messages: jsonb("messages")
     .$type<Array<{ role: "user" | "friend"; message: string }>>()
     .default([]),

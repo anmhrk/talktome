@@ -12,7 +12,13 @@ const openai = new OpenAI({
 interface Friend {
   name: string;
   description: string;
+  voice: string;
 }
+
+const voices = {
+  male: ["aura-orion-en", "aura-perseus-en", "aura-angus-en", "aura-zeus-en"],
+  female: ["aura-asteria-en", "aura-luna-en", "aura-stella-en"],
+};
 
 export async function POST(req: Request) {
   try {
@@ -31,10 +37,13 @@ export async function POST(req: Request) {
             role: "system",
             content: `
               - Generate a random friend's name and personality description.
-              - Format the response as JSON with 'name' and 'description' fields.
               - Keep the description between 2-3 sentences.
               - The name should be the first name only.
               - The friend can be either male or female. Use appropriate pronouns in the description.
+              - Also randomly select a voice based on the friend's gender from this list:
+                Male voices: ${voices.male.join(", ")}
+                Female voices: ${voices.female.join(", ")}
+              - Format the response as JSON with 'name', 'description', and 'voice' fields.
             `,
           },
         ],
@@ -73,6 +82,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         name: friendData.name,
         description: friendData.description,
+        voice: friendData.voice,
         base64Image: base64Image,
       });
     } else if (body.type === "response") {
@@ -130,7 +140,7 @@ export async function POST(req: Request) {
         method: "POST",
         url: "https://api.deepgram.com/v1/speak",
         params: {
-          model: "aura-asteria-en",
+          model: friend.voice,
         },
         headers: {
           "Content-Type": "application/json",
