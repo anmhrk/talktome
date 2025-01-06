@@ -11,6 +11,7 @@ export interface Friend {
   name: string;
   description: string;
   imageUrl: string;
+  id: string;
 }
 
 export default function HomePage() {
@@ -28,8 +29,9 @@ export default function HomePage() {
           setFriend(dbFriend as Friend);
         } else {
           setCreatingFriend(true);
-          const newFriend = await generateFriend();
-          setFriend(newFriend);
+          await generateFriend();
+          const newFriend = await loadFriend();
+          setFriend(newFriend as Friend);
           setCreatingFriend(false);
         }
       } catch (error) {

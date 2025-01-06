@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   index,
   integer,
+  jsonb,
   pgTableCreator,
   primaryKey,
   text,
@@ -115,6 +116,9 @@ export const friends = createTable("friend", {
   name: varchar("name", { length: 255 }),
   description: varchar("description"),
   imageUrl: varchar("image_url"),
+  messages: jsonb("messages")
+    .$type<Array<{ role: "user" | "friend"; message: string }>>()
+    .default([]),
   createdAt: timestamp("created_at", {
     mode: "date",
     withTimezone: true,

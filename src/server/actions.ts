@@ -23,12 +23,13 @@ export async function generateFriend() {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/friend`,
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/generate`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ type: "friend" }),
       },
     );
 
@@ -67,12 +68,6 @@ export async function generateFriend() {
         createdBy: session.user.id,
       });
     }
-
-    return {
-      name: data.name,
-      description: data.description,
-      imageUrl: imageUrl,
-    };
   } catch (error) {
     throw error;
   }
@@ -91,6 +86,46 @@ export async function loadFriend() {
       .limit(1);
 
     return latestFriend;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function generateResponse(message: string, friendId: string) {
+  try {
+    const session = await auth();
+    if (!session) throw new Error("Unauthorized");
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/generate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          type: "response",
+          friendId: friendId,
+          userMessage: message,
+          usersName: session.user.name,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        const error = (await response.json()) as { message: string };
+        throw new Error(error.message || "An error occurred");
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    }
+
+    const audioBlob = await response.blob();
+    const audioURL = URL.createObjectURL(audioBlob);
+    return { audioURL, audioBlob };
   } catch (error) {
     throw error;
   }

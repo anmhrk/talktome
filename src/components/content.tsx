@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
 import { BiSolidMicrophone, BiSolidMicrophoneOff } from "react-icons/bi";
 import { toast } from "sonner";
+import { generateResponse } from "~/server/actions";
 
 interface ContentProps {
   friend: Friend | null;
@@ -36,7 +37,6 @@ export default function Content({
       });
       setHasMicPermission(true);
       permissionResult.getTracks().forEach((track) => track.stop());
-      return true;
     } catch (error) {
       setHasMicPermission(false);
       throw new Error(
@@ -48,13 +48,16 @@ export default function Content({
 
   const handleConversation = async () => {
     try {
-      const hasPermission = await checkMicPermission();
-      if (hasPermission) {
+      await checkMicPermission();
+
+      if (hasMicPermission && friend) {
         if (typeof window === "undefined") return;
 
         const SpeechRecognition =
           window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
+        if (!SpeechRecognition) {
+          throw new Error("Speech recognition not supported in this browser");
+        }
 
         recognitionRef.current = new SpeechRecognition();
         const recognition = recognitionRef.current;
@@ -65,15 +68,19 @@ export default function Content({
 
         recognition.onstart = () => {
           setStatus("listening");
-          toast.success("Started listening");
         };
 
-        recognition.onresult = (event) => {
+        recognition.onresult = async (event) => {
           const current = event.resultIndex;
           const transcript = event.results[current]?.[0]?.transcript;
 
-          if (event.results[current]?.isFinal) {
-            console.log("Final transcript:", transcript);
+          if (event.results[current]?.isFinal && transcript) {
+            setStatus("thinking");
+            // const audioURL = await generateResponse(transcript, friend?.id);
+            // setStatus("speaking");
+            // const audio = new Audio(audioURL);
+            // await audio.play();
+            // setStatus("idle");
           }
         };
 
@@ -88,7 +95,7 @@ export default function Content({
           }
 
           setStatus("error");
-          toast.error(`Speech recognition error: ${event.error}`);
+          throw new Error(`Speech recognition error: ${event.error}`);
         };
 
         recognition.onend = () => {
@@ -97,7 +104,6 @@ export default function Content({
             recognition.start();
           } else {
             setStatus("idle");
-            toast.info("Stopped listening");
           }
         };
 
@@ -156,6 +162,21 @@ export default function Content({
                   onClick={handleConversation}
                 >
                   Start conversation
+                </Button>
+                <Button
+                  onClick={async () => {
+                    const { audioURL, audioBlob } = await generateResponse(
+                      "Hello",
+                      friend?.id ?? "",
+                    );
+                    console.log(audioURL, audioBlob.size);
+                    const url = URL.createObjectURL(audioBlob);
+                    window.open(url, "_blank");
+                    // const audio = new Audio(audioURL);
+                    // await audio.play();
+                  }}
+                >
+                  Test
                 </Button>
               </>
             ) : (
