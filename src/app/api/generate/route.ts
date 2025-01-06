@@ -163,7 +163,7 @@ export async function POST(req: Request) {
 
       return new Response(stream, {
         headers: {
-          "Content-Type": "audio/wav",
+          "Content-Type": "audio/mpeg",
           "Content-Disposition": "inline",
         },
       });

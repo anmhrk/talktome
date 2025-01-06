@@ -165,15 +165,14 @@ export default function Content({
                 </Button>
                 <Button
                   onClick={async () => {
-                    const { audioURL, audioBlob } = await generateResponse(
-                      "Hello",
+                    const { audioBlob } = await generateResponse(
+                      "thats so nice to hear",
                       friend?.id ?? "",
                     );
-                    console.log(audioURL, audioBlob.size);
                     const url = URL.createObjectURL(audioBlob);
-                    window.open(url, "_blank");
-                    // const audio = new Audio(audioURL);
-                    // await audio.play();
+                    // window.open(url, "_blank");
+                    const audio = new Audio(url);
+                    await audio.play();
                   }}
                 >
                   Test

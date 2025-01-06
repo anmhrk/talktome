@@ -103,7 +103,6 @@ export async function generateResponse(message: string, friendId: string) {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
           type: "response",
           friendId: friendId,
@@ -123,9 +122,10 @@ export async function generateResponse(message: string, friendId: string) {
       }
     }
 
-    const audioBlob = await response.blob();
-    const audioURL = URL.createObjectURL(audioBlob);
-    return { audioURL, audioBlob };
+    const audioBlob = new Blob([await response.blob()], {
+      type: "audio/mpeg",
+    });
+    return { audioBlob };
   } catch (error) {
     throw error;
   }
