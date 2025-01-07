@@ -103,14 +103,14 @@ export default function Account({ setShowAccount }: AccountProps) {
                 <div className="flex w-1/2 items-center">
                   <div className="w-full space-y-3">
                     <Button
-                      className="w-full rounded-2xl bg-zinc-900 text-white hover:bg-zinc-800"
+                      className="w-full rounded-2xl"
                       onClick={() => signOut()}
                     >
                       Logout
                     </Button>
 
                     <Button
-                      className="w-full rounded-2xl bg-red-500 text-white hover:bg-red-600"
+                      className="w-full rounded-2xl bg-red-500 hover:bg-red-600"
                       onClick={async () => {
                         try {
                           setLoading(true);

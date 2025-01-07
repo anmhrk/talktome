@@ -3,10 +3,10 @@
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { type Friend } from "~/app/page";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
-import { BiSolidMicrophone, BiSolidMicrophoneOff } from "react-icons/bi";
+import { BiSolidMicrophone } from "react-icons/bi";
 import { toast } from "sonner";
 import { generateResponse, checkIfNoMessages } from "~/server/actions";
 
@@ -28,7 +28,9 @@ export default function Content({
     null,
   );
   const [status, setStatus] = useState<Status>("idle");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
+    null,
+  );
 
   const checkMicPermission = async () => {
     try {
@@ -46,7 +48,7 @@ export default function Content({
     }
   };
 
-  const handleConversation = useCallback(async () => {
+  const handleStartConversation = async () => {
     try {
       await checkMicPermission();
       setConversationStarted(true);
@@ -61,70 +63,6 @@ export default function Content({
         setStatus("speaking");
         await audio.play();
         setStatus("idle");
-        return;
-      }
-
-      if (hasMicPermission && friend) {
-        if (typeof window === "undefined") return;
-
-        const SpeechRecognition =
-          window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-          throw new Error("Speech recognition not supported in this browser");
-        }
-
-        recognitionRef.current = new SpeechRecognition();
-        const recognition = recognitionRef.current;
-
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "en-US";
-
-        recognition.onstart = () => {
-          setStatus("listening");
-        };
-
-        recognition.onresult = async (event) => {
-          const current = event.resultIndex;
-          const transcript = event.results[current]?.[0]?.transcript;
-
-          if (event.results[current]?.isFinal && transcript) {
-            setStatus("thinking");
-            const { audioBlob } = await generateResponse(
-              transcript,
-              friend?.id,
-            );
-            const audio = new Audio(URL.createObjectURL(audioBlob));
-            setStatus("speaking");
-            await audio.play();
-            setStatus("idle");
-          }
-        };
-
-        recognition.onerror = (event) => {
-          console.error("Speech recognition error:", event.error);
-
-          if (event.error === "no-speech") {
-            // restart once instead
-            recognition.stop();
-            recognition.start();
-            return;
-          }
-
-          setStatus("error");
-          throw new Error(`Speech recognition error: ${event.error}`);
-        };
-
-        recognition.onend = () => {
-          // always restart if conversation active
-          if (conversationStarted) {
-            recognition.start();
-          } else {
-            setStatus("idle");
-          }
-        };
-
-        recognition.start();
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -133,27 +71,89 @@ export default function Content({
         });
       }
     }
-  }, [friend, hasMicPermission, conversationStarted]);
+  };
 
-  useEffect(() => {
-    if (conversationStarted && friend) {
-      void handleConversation();
-    } else if (!conversationStarted && recognitionRef.current) {
-      recognitionRef.current.stop();
+  const handleMicToggle = async () => {
+    if (!hasMicPermission || !friend) return;
+
+    try {
+      if (status === "listening") {
+        recognition?.stop();
+        setStatus("idle");
+        setRecognition(null);
+        return;
+      }
+
+      if (typeof window === "undefined") return;
+
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        throw new Error("Speech recognition not supported in this browser");
+      }
+
+      const newRecognition = new SpeechRecognition();
+      newRecognition.continuous = false;
+      newRecognition.interimResults = true;
+      newRecognition.lang = "en-US";
+
+      newRecognition.onstart = () => {
+        setStatus("listening");
+      };
+
+      newRecognition.onresult = async (event) => {
+        const current = event.resultIndex;
+        const transcript = event.results[current]?.[0]?.transcript;
+
+        if (event.results[current]?.isFinal && transcript) {
+          try {
+            newRecognition.stop();
+            setStatus("thinking");
+            const { audioBlob } = await generateResponse(
+              transcript,
+              friend?.id,
+            );
+            const audio = new Audio(URL.createObjectURL(audioBlob));
+            setStatus("speaking");
+            await audio.play();
+          } catch (error) {
+            console.error("Error processing speech:", error);
+            setStatus("error");
+          } finally {
+            setStatus("idle");
+          }
+        }
+      };
+
+      newRecognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setStatus("error");
+        throw new Error(`Speech recognition error: ${event.error}`);
+      };
+
+      newRecognition.onend = () => {
+        setStatus("idle");
+        setRecognition(null);
+      };
+
+      setRecognition(newRecognition);
+      newRecognition.start();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message, {
+          duration: 10000,
+        });
+      }
     }
-  }, [conversationStarted, friend, handleConversation]);
+  };
 
   const cleanup = () => {
+    if (recognition) {
+      recognition.stop();
+    }
     setConversationStarted(false);
     setStatus("idle");
-    if (recognitionRef.current) {
-      recognitionRef.current.onend = null;
-      recognitionRef.current.onerror = null;
-      recognitionRef.current.onresult = null;
-      recognitionRef.current.onstart = null;
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
+    setRecognition(null);
   };
 
   return (
@@ -178,11 +178,6 @@ export default function Content({
               status === "speaking" ? "animate-pulse" : ""
             } ${status === "thinking" ? "opacity-70" : ""}`}
           />
-          {conversationStarted && (
-            <p className="text-sm font-medium text-neutral-600">
-              Status: {status}
-            </p>
-          )}
           <AnimatePresence mode="wait">
             {!conversationStarted ? (
               <>
@@ -202,7 +197,7 @@ export default function Content({
                 </motion.p>
                 <Button
                   className="mt-4 rounded-xl bg-[#F5F5F4] px-8 py-5 text-neutral-900 shadow-none hover:bg-[#F5F5F4] hover:opacity-90"
-                  onClick={handleConversation}
+                  onClick={handleStartConversation}
                 >
                   Start conversation
                 </Button>
@@ -214,20 +209,23 @@ export default function Content({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <p className="mb-3 font-serif text-xl">{friend?.name}</p>
+                <p className="font-serif text-xl">{friend?.name}</p>
+                {status === "idle" && (
+                  <p className="mb-2 text-sm text-neutral-500">
+                    Press the mic button to speak and send a message
+                  </p>
+                )}
+                {(status === "thinking" || status === "speaking") && (
+                  <div className="h-4 w-4 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900" />
+                )}
                 <div className="flex gap-3">
                   <Button
                     variant="custom"
-                    onClick={() =>
-                      setStatus(status === "listening" ? "idle" : "listening")
-                    }
-                    className={`h-12 w-12 ${status === "listening" && "bg-[#FEEFED]"}`}
+                    onClick={handleMicToggle}
+                    disabled={status === "thinking"}
+                    className="h-12 w-12"
                   >
-                    {status === "listening" ? (
-                      <BiSolidMicrophoneOff className="!h-6 !w-6 text-red-500" />
-                    ) : (
-                      <BiSolidMicrophone className="!h-6 !w-6" />
-                    )}
+                    <BiSolidMicrophone className="!h-6 !w-6" />
                   </Button>
                   <Button
                     variant="custom"
