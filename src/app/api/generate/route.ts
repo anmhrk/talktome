@@ -123,6 +123,7 @@ export async function POST(req: Request) {
               - Also, sound human and not robotic.
               - Adapt your description based on previous messages and user's requests.
               - Feel free to address the user by name if you think it's appropriate.
+              - DO NOT use emojis.
 
               IMPORTANT:
               - If there are no previous messages and user's latest message is also empty, then respond as if you are just starting a conversation.

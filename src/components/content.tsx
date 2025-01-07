@@ -3,12 +3,12 @@
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { type Friend } from "~/app/page";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
 import { BiSolidMicrophone, BiSolidMicrophoneOff } from "react-icons/bi";
 import { toast } from "sonner";
-import { generateResponse } from "~/server/actions";
+import { generateResponse, checkIfNoMessages } from "~/server/actions";
 
 interface ContentProps {
   friend: Friend | null;
@@ -28,7 +28,9 @@ export default function Content({
     null,
   );
   const [status, setStatus] = useState<Status>("idle");
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
 
   const checkMicPermission = async () => {
     try {
@@ -36,7 +38,7 @@ export default function Content({
         audio: true,
       });
       setHasMicPermission(true);
-      permissionResult.getTracks().forEach((track) => track.stop());
+      micStreamRef.current = permissionResult;
     } catch (error) {
       setHasMicPermission(false);
       throw new Error(
@@ -46,9 +48,23 @@ export default function Content({
     }
   };
 
-  const handleConversation = async () => {
+  const handleConversation = useCallback(async () => {
     try {
       await checkMicPermission();
+      setConversationStarted(true);
+
+      const noMessages = await checkIfNoMessages(friend?.id ?? "");
+
+      // if no prev messages, friend will greet
+      if (noMessages) {
+        setStatus("thinking");
+        const { audioBlob } = await generateResponse("", friend?.id ?? "");
+        const audio = new Audio(URL.createObjectURL(audioBlob));
+        setStatus("speaking");
+        await audio.play();
+        setStatus("idle");
+        return;
+      }
 
       if (hasMicPermission && friend) {
         if (typeof window === "undefined") return;
@@ -76,11 +92,14 @@ export default function Content({
 
           if (event.results[current]?.isFinal && transcript) {
             setStatus("thinking");
-            // const audioURL = await generateResponse(transcript, friend?.id);
-            // setStatus("speaking");
-            // const audio = new Audio(audioURL);
-            // await audio.play();
-            // setStatus("idle");
+            const { audioBlob } = await generateResponse(
+              transcript,
+              friend?.id,
+            );
+            const audio = new Audio(URL.createObjectURL(audioBlob));
+            setStatus("speaking");
+            await audio.play();
+            setStatus("idle");
           }
         };
 
@@ -88,7 +107,7 @@ export default function Content({
           console.error("Speech recognition error:", event.error);
 
           if (event.error === "no-speech") {
-            // restart instead
+            // restart once instead
             recognition.stop();
             recognition.start();
             return;
@@ -99,8 +118,8 @@ export default function Content({
         };
 
         recognition.onend = () => {
-          // only restart if still in conversation and not in error state
-          if (conversationStarted && status !== "error") {
+          // always restart if conversation active
+          if (conversationStarted) {
             recognition.start();
           } else {
             setStatus("idle");
@@ -108,7 +127,6 @@ export default function Content({
         };
 
         recognition.start();
-        setConversationStarted(true);
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -117,7 +135,15 @@ export default function Content({
         });
       }
     }
-  };
+  }, [friend, hasMicPermission, conversationStarted]);
+
+  useEffect(() => {
+    if (conversationStarted && friend) {
+      void handleConversation();
+    } else if (!conversationStarted && recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }, [conversationStarted, friend, handleConversation]);
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-4">
@@ -139,7 +165,7 @@ export default function Content({
             alt={friend?.name ?? ""}
             className="rounded-full object-cover shadow-md"
           />
-          {status}
+          <p>Status: {status}</p>
           <AnimatePresence mode="wait">
             {!conversationStarted ? (
               <>
@@ -162,20 +188,6 @@ export default function Content({
                   onClick={handleConversation}
                 >
                   Start conversation
-                </Button>
-                <Button
-                  onClick={async () => {
-                    const { audioBlob } = await generateResponse(
-                      "thats so nice to hear",
-                      friend?.id ?? "",
-                    );
-                    const url = URL.createObjectURL(audioBlob);
-                    // window.open(url, "_blank");
-                    const audio = new Audio(url);
-                    await audio.play();
-                  }}
-                >
-                  Test
                 </Button>
               </>
             ) : (
@@ -202,7 +214,19 @@ export default function Content({
                   </Button>
                   <Button
                     variant="custom"
-                    onClick={() => setConversationStarted(false)}
+                    onClick={() => {
+                      setConversationStarted(false);
+                      setStatus("idle");
+                      if (recognitionRef.current) {
+                        recognitionRef.current.stop();
+                      }
+                      if (micStreamRef.current) {
+                        micStreamRef.current
+                          .getTracks()
+                          .forEach((track) => track.stop());
+                        micStreamRef.current = null;
+                      }
+                    }}
                     className="h-12 w-12"
                   >
                     <FaXmark className="!h-6 !w-6" />

@@ -130,3 +130,21 @@ export async function generateResponse(message: string, friendId: string) {
     throw error;
   }
 }
+
+export async function checkIfNoMessages(friendId: string) {
+  try {
+    const session = await auth();
+    if (!session) throw new Error("Unauthorized");
+
+    const [friendData] = await db
+      .select({ messages: friends.messages })
+      .from(friends)
+      .where(eq(friends.id, friendId));
+
+    if (!friendData) return true;
+
+    return (friendData.messages ?? []).length === 0;
+  } catch (error) {
+    throw error;
+  }
+}
