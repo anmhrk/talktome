@@ -28,9 +28,7 @@ export default function Content({
     null,
   );
   const [status, setStatus] = useState<Status>("idle");
-
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const micStreamRef = useRef<MediaStream | null>(null);
 
   const checkMicPermission = async () => {
     try {
@@ -38,7 +36,7 @@ export default function Content({
         audio: true,
       });
       setHasMicPermission(true);
-      micStreamRef.current = permissionResult;
+      permissionResult.getTracks().forEach((track) => track.stop());
     } catch (error) {
       setHasMicPermission(false);
       throw new Error(
@@ -145,6 +143,19 @@ export default function Content({
     }
   }, [conversationStarted, friend, handleConversation]);
 
+  const cleanup = () => {
+    setConversationStarted(false);
+    setStatus("idle");
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.onerror = null;
+      recognitionRef.current.onresult = null;
+      recognitionRef.current.onstart = null;
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-4">
       {loading ? (
@@ -163,9 +174,15 @@ export default function Content({
             width={180}
             height={180}
             alt={friend?.name ?? ""}
-            className="rounded-full object-cover shadow-md"
+            className={`rounded-full object-cover shadow-md transition-all duration-300 ${
+              status === "speaking" ? "animate-pulse" : ""
+            } ${status === "thinking" ? "opacity-70" : ""}`}
           />
-          <p>Status: {status}</p>
+          {conversationStarted && (
+            <p className="text-sm font-medium text-neutral-600">
+              Status: {status}
+            </p>
+          )}
           <AnimatePresence mode="wait">
             {!conversationStarted ? (
               <>
@@ -214,20 +231,8 @@ export default function Content({
                   </Button>
                   <Button
                     variant="custom"
-                    onClick={() => {
-                      setConversationStarted(false);
-                      setStatus("idle");
-                      if (recognitionRef.current) {
-                        recognitionRef.current.stop();
-                      }
-                      if (micStreamRef.current) {
-                        micStreamRef.current
-                          .getTracks()
-                          .forEach((track) => track.stop());
-                        micStreamRef.current = null;
-                      }
-                    }}
-                    className="h-12 w-12"
+                    onClick={cleanup}
+                    className="h-12 w-12 transition-all active:scale-95"
                   >
                     <FaXmark className="!h-6 !w-6" />
                   </Button>

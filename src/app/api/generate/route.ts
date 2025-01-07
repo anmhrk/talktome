@@ -122,7 +122,7 @@ export async function POST(req: Request) {
               - Your response will be converted to speech so make sure it's not super text-like language.
               - Also, sound human and not robotic.
               - Adapt your description based on previous messages and user's requests.
-              - Feel free to address the user by name if you think it's appropriate.
+              - Only address the user by name when you are greeting them. Don't overdo it.
               - DO NOT use emojis.
 
               IMPORTANT:

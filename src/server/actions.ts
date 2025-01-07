@@ -3,7 +3,7 @@
 import { ratelimit } from "./ratelimit";
 import { auth } from "./auth";
 import { db } from "./db";
-import { friends } from "./db/schema";
+import { accounts, friends, sessions, users } from "./db/schema";
 import { eq, desc } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
 
@@ -144,6 +144,45 @@ export async function checkIfNoMessages(friendId: string) {
     if (!friendData) return true;
 
     return (friendData.messages ?? []).length === 0;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteAccount() {
+  try {
+    const session = await auth();
+    if (!session) throw new Error("Unauthorized");
+
+    await db.delete(friends).where(eq(friends.createdBy, session.user.id));
+    await db.delete(sessions).where(eq(sessions.userId, session.user.id));
+    await db.delete(accounts).where(eq(accounts.userId, session.user.id));
+    await db.delete(users).where(eq(users.id, session.user.id));
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function loadStats() {
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+
+  try {
+    let totalFriends = 0;
+    let totalMessages = 0;
+
+    const friendsData = await db
+      .select()
+      .from(friends)
+      .where(eq(friends.createdBy, session.user.id));
+
+    totalFriends = friendsData.length;
+
+    totalMessages = friendsData.reduce((sum, friend) => {
+      return sum + (friend.messages?.length ?? 0);
+    }, 0);
+
+    return { totalMessages, totalFriends };
   } catch (error) {
     throw error;
   }

@@ -3,12 +3,13 @@
 import { HiRefresh } from "react-icons/hi";
 import { IoMdSettings } from "react-icons/io";
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { Button } from "~/components/ui/button";
 import Image from "next/image";
 import { type Friend } from "~/app/page";
 import { Skeleton } from "./ui/skeleton";
 import NewFriend from "./new-friend";
+import Account from "./account";
 
 interface HeaderProps {
   friend: Friend | null;
@@ -21,7 +22,7 @@ export default function Header({
   loading,
   setCreateNewFriend,
 }: HeaderProps) {
-  const [showProfile, setShowProfile] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const [showNewFriend, setShowNewFriend] = useState(false);
 
   return (
@@ -64,7 +65,7 @@ export default function Header({
               variant="custom"
               className="h-8 w-8"
               onClick={() => {
-                setShowProfile(true);
+                setShowAccount(true);
               }}
             >
               <IoMdSettings className="!h-5 !w-5" />
@@ -74,18 +75,7 @@ export default function Header({
       </header>
 
       <AnimatePresence>
-        {showProfile && (
-          <motion.div
-            className="fixed inset-0 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {/* TODO: make profile later */}
-          </motion.div>
-        )}
-
+        {showAccount && <Account setShowAccount={setShowAccount} />}
         {showNewFriend && (
           <NewFriend
             setShowNewFriend={setShowNewFriend}
