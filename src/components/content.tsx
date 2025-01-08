@@ -6,7 +6,7 @@ import { type Friend } from "~/app/page";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
-import { BiSolidMicrophone } from "react-icons/bi";
+import { BiSolidMicrophone, BiSolidMicrophoneOff } from "react-icons/bi";
 import { toast } from "sonner";
 import { generateResponse, checkIfNoMessages } from "~/server/actions";
 
@@ -106,21 +106,27 @@ export default function Content({
         const transcript = event.results[current]?.[0]?.transcript;
 
         if (event.results[current]?.isFinal && transcript) {
+          newRecognition.stop();
+          setRecognition(null);
+
           try {
-            newRecognition.stop();
             setStatus("thinking");
             const { audioBlob } = await generateResponse(
               transcript,
               friend?.id,
             );
             const audio = new Audio(URL.createObjectURL(audioBlob));
+
+            audio.addEventListener("ended", () => {
+              setStatus("idle");
+            });
+
             setStatus("speaking");
             await audio.play();
           } catch (error) {
             console.error("Error processing speech:", error);
             setStatus("error");
-          } finally {
-            setStatus("idle");
+            setTimeout(() => setStatus("idle"), 2000);
           }
         }
       };
@@ -132,8 +138,10 @@ export default function Content({
       };
 
       newRecognition.onend = () => {
+        // if (status === "listening") {
         setStatus("idle");
         setRecognition(null);
+        // }
       };
 
       setRecognition(newRecognition);
@@ -174,9 +182,7 @@ export default function Content({
             width={180}
             height={180}
             alt={friend?.name ?? ""}
-            className={`rounded-full object-cover shadow-md transition-all duration-300 ${
-              status === "speaking" ? "animate-pulse" : ""
-            } ${status === "thinking" ? "opacity-70" : ""}`}
+            className="rounded-full object-cover shadow-md"
           />
           <AnimatePresence mode="wait">
             {!conversationStarted ? (
@@ -209,7 +215,7 @@ export default function Content({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <p className="font-serif text-xl">{friend?.name}</p>
+                <p className="mb-3 font-serif text-xl">{friend?.name}</p>
                 {status === "idle" && (
                   <p className="mb-2 text-sm text-neutral-500">
                     Press the mic button to speak and send a message
@@ -222,10 +228,13 @@ export default function Content({
                   <Button
                     variant="custom"
                     onClick={handleMicToggle}
-                    disabled={status === "thinking"}
-                    className="h-12 w-12"
+                    className={`h-12 w-12 ${status === "listening" && "bg-[#FEEFED]"}`}
                   >
-                    <BiSolidMicrophone className="!h-6 !w-6" />
+                    {status === "listening" ? (
+                      <BiSolidMicrophoneOff className="!h-6 !w-6 text-red-500" />
+                    ) : (
+                      <BiSolidMicrophone className="!h-6 !w-6" />
+                    )}
                   </Button>
                   <Button
                     variant="custom"
