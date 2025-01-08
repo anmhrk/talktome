@@ -9,7 +9,6 @@ import Footer from "~/components/footer";
 
 export interface Friend {
   name: string;
-  description: string;
   imageUrl: string;
   id: string;
 }

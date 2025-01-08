@@ -194,13 +194,6 @@ export default function Content({
                 >
                   {friend?.name} wants to talk to you
                 </motion.p>
-                <motion.p
-                  className="max-w-[400px] text-center text-sm text-neutral-500"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  {friend?.description}
-                </motion.p>
                 <Button
                   className="mt-4 rounded-xl bg-[#F5F5F4] px-8 py-5 text-neutral-900 shadow-none hover:bg-[#F5F5F4] hover:opacity-90"
                   onClick={handleStartConversation}
@@ -217,8 +210,9 @@ export default function Content({
               >
                 <p className="mb-3 font-serif text-xl">{friend?.name}</p>
                 {status === "idle" && (
-                  <p className="mb-2 text-sm text-neutral-500">
-                    Press the mic button to speak and send a message
+                  <p className="mb-2 max-w-[300px] text-center text-sm text-neutral-500">
+                    Press the mic button to speak and send a message. Headphones
+                    recommended!
                   </p>
                 )}
                 {(status === "thinking" || status === "speaking") && (
@@ -228,13 +222,14 @@ export default function Content({
                   <Button
                     variant="custom"
                     onClick={handleMicToggle}
-                    className={`h-12 w-12 ${status === "listening" && "bg-[#FEEFED]"}`}
+                    className={`h-12 w-12 ${
+                      status === "thinking" || status === "speaking"
+                        ? "opacity-50"
+                        : ""
+                    }`}
+                    disabled={status === "thinking" || status === "speaking"}
                   >
-                    {status === "listening" ? (
-                      <BiSolidMicrophoneOff className="!h-6 !w-6 text-red-500" />
-                    ) : (
-                      <BiSolidMicrophone className="!h-6 !w-6" />
-                    )}
+                    <BiSolidMicrophone className="!h-6 !w-6" />
                   </Button>
                   <Button
                     variant="custom"

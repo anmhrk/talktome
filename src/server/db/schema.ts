@@ -114,7 +114,6 @@ export const friends = createTable("friend", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: varchar("name", { length: 255 }),
-  description: varchar("description"),
   imageUrl: varchar("image_url"),
   voice: varchar("voice", { length: 255 }),
   messages: jsonb("messages")

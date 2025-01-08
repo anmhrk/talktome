@@ -64,7 +64,6 @@ export async function generateFriend() {
     if (session) {
       await db.insert(friends).values({
         name: data.name,
-        description: data.description,
         voice: data.voice,
         imageUrl: imageUrl,
         createdBy: session.user.id,

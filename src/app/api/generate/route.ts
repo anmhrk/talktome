@@ -11,7 +11,7 @@ const openai = new OpenAI({
 
 interface Friend {
   name: string;
-  description: string;
+  gender: string;
   voice: string;
 }
 
@@ -36,14 +36,13 @@ export async function POST(req: Request) {
           {
             role: "system",
             content: `
-              - Generate a random friend's name and personality description.
-              - Keep the description between 2-3 sentences.
-              - The name should be the first name only.
-              - The friend can be either male or female. Use appropriate pronouns in the description.
+              - Generate a random friend's name. First name only.
+              - The friend can be either male or female.
               - Also randomly select a voice based on the friend's gender from this list:
                 Male voices: ${voices.male.join(", ")}
                 Female voices: ${voices.female.join(", ")}
-              - Format the response as JSON with 'name', 'description', and 'voice' fields.
+              - Do not base the name on the voices. The name should be absolutely random.
+              - Format the response as JSON with 'name', 'gender', and 'voice' fields.
             `,
           },
         ],
@@ -60,7 +59,7 @@ export async function POST(req: Request) {
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
         prompt: `
-          Create a profile picture for ${friendData.name} using ${friendData.description} as context.
+          Create a profile picture for ${friendData.name}. Their gender is ${friendData.gender}.
           Here's a sample prompt:
           "A photo-realistic and detailed profile picture of a young woman with shoulder-length dark brown hair, wearing a casual outfit. 
           She has warm, natural makeup and a friendly smile. The background is softly blurred with neutral tones, giving a professional yet approachable look. 
@@ -81,7 +80,6 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         name: friendData.name,
-        description: friendData.description,
         voice: friendData.voice,
         base64Image: base64Image,
       });
@@ -103,7 +101,6 @@ export async function POST(req: Request) {
               - You are a friend of the user and are in a conversation with them.
               <your_profile>
                 <name>${friend.name}</name>
-                <description>${friend.description}</description>
               </your_profile>
               - User's name: ${body.usersName}
               - User's latest message: ${body.userMessage}
@@ -112,7 +109,6 @@ export async function POST(req: Request) {
               - Previous messages: ${friend.messages?.map((m) => `${m.role}: ${m.message}`).join("\n") ?? ""}
 
               INSTRUCTIONS FOR RESPONSE:
-              - Respond in a way that is consistent with your personality and description.
               - Respond as if you are talking to your closest friend.
               - Show genuine emotion and personality.
               - You are allowed to use conversational slang.
