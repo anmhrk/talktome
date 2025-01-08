@@ -5,6 +5,8 @@ import { db } from "~/server/db";
 import { friends } from "~/server/db/schema";
 import axios from "axios";
 
+export const runtime = "edge";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
