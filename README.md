@@ -1,29 +1,36 @@
-# Create T3 App
+# Talk To Me
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This project is a crossover between [friend.com](https://friend.com) and [character.ai](https://character.ai). It generates a random AI friend and allows you to talk to them with voice. It uses OpenAI's GPT-4o-mini model for generating responses, DALL-E-3 for generating a profile picture of the friend, and Deepgram for text-to-speech.
 
-## What's next? How do I make an app with this?
+## Tech Stack
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- [Next.js 15](https://nextjs.org/) w/ App Router
+- [NextAuth](https://authjs.dev/) for authentication
+- [Drizzle](https://orm.drizzle.team/) as the ORM
+- [Neon](https://neon.tech/) for the postgres database
+- [Tailwind CSS](https://tailwindcss.com/) and [Shadcn/ui](https://ui.shadcn.com/) for styling and UI components
+- [Uploadthing](https://uploadthing.com/) for image storage
+- [OpenAI API](https://platform.openai.com/docs/overview) for AI responses and image generation
+- [Deepgram](https://www.deepgram.com/) for text-to-speech
+- [Upstash](https://upstash.com/) for rate limiting
+- [Vercel](https://vercel.com/) for deployment
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## How to run locally
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+1. Clone the repo
 
-## Learn More
+2. Copy the `.env.example` file to `.env` and fill in with valid environment variables
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+3. Run `bun install` to install the dependencies
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+4. Run `bun dev` to start the development server
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+5. Run `bun db:push` to push the schema to the database
 
-## How do I deploy this?
+6. Navigate to `http://localhost:3000` to view the app
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+## Todos
+
+- [ ] Add a transcript of the conversation
+- [ ] Use Deepgram's speech to text API instead of browser speech recognition
+- [ ] Make it more like a phone call using Deepgram's streaming features

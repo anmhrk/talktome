@@ -36,12 +36,11 @@ export async function POST(req: Request) {
           {
             role: "system",
             content: `
-              - Generate a random friend's name. First name only.
+              - Generate a random friend's name. First name only. Don't keep using names like "Maya" or "Luna". There are so many more names out there.
               - The friend can be either male or female.
               - Also randomly select a voice based on the friend's gender from this list:
                 Male voices: ${voices.male.join(", ")}
                 Female voices: ${voices.female.join(", ")}
-              - Do not base the name on the voices. The name should be absolutely random.
               - Format the response as JSON with 'name', 'gender', and 'voice' fields.
             `,
           },
@@ -112,12 +111,9 @@ export async function POST(req: Request) {
               - Respond as if you are talking to your closest friend.
               - Show genuine emotion and personality.
               - You are allowed to use conversational slang.
-              - Just make sure your response is casual, short, and authentic.
-              - Adapt tone based on context of the entire conversation and previous messages.
+              - Make it seem like a natural human like conversation.
               - Don't be too formal, corny, or cheesy.
               - Your response will be converted to speech so make sure it's not super text-like language.
-              - Also, sound human and not robotic.
-              - Adapt your description based on previous messages and user's requests.
               - Only address the user by name when you are greeting them. Don't overdo it.
               - DO NOT use emojis.
 

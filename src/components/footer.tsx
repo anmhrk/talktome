@@ -12,13 +12,6 @@ export default function Footer() {
           github
           <LuArrowUpRight className="h-4 w-4" />
         </Link>
-        <Link
-          href="https://x.com/anmhrk"
-          className="flex items-center hover:text-neutral-800 hover:underline"
-        >
-          x
-          <LuArrowUpRight className="h-4 w-4" />
-        </Link>
       </div>
     </footer>
   );

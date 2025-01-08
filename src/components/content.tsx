@@ -6,7 +6,7 @@ import { type Friend } from "~/app/page";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
-import { BiSolidMicrophone, BiSolidMicrophoneOff } from "react-icons/bi";
+import { BiSolidMicrophone } from "react-icons/bi";
 import { toast } from "sonner";
 import { generateResponse, checkIfNoMessages } from "~/server/actions";
 
@@ -60,6 +60,9 @@ export default function Content({
         setStatus("thinking");
         const { audioBlob } = await generateResponse("", friend?.id ?? "");
         const audio = new Audio(URL.createObjectURL(audioBlob));
+
+        await new Promise((resolve) => setTimeout(resolve, 100)); // small delay to prevent audio cut off
+
         setStatus("speaking");
         await audio.play();
         setStatus("idle");
@@ -120,6 +123,8 @@ export default function Content({
             audio.addEventListener("ended", () => {
               setStatus("idle");
             });
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             setStatus("speaking");
             await audio.play();
