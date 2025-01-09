@@ -3,9 +3,8 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { db } from "~/server/db";
 import { friends } from "~/server/db/schema";
-import axios from "axios";
 
-export const runtime = "edge";
+export const maxDuration = 60;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -131,23 +130,24 @@ export async function POST(req: Request) {
         throw new Error("Either there was an error or I'm out of API credits.");
       }
 
-      const ttsResponse = await axios({
+      const ttsResponse = await fetch("https://api.deepgram.com/v1/speak", {
         method: "POST",
-        url: "https://api.deepgram.com/v1/speak",
-        params: {
-          model: friend.voice,
-        },
         headers: {
           "Content-Type": "application/json",
           Authorization: `Token ${process.env.DEEPGRAM_API_KEY}`,
         },
-        data: {
+        body: JSON.stringify({
           text: messageContent,
-        },
-        responseType: "stream",
+        }),
       });
 
-      const stream = ttsResponse.data as ReadableStream;
+      if (!ttsResponse.ok) {
+        throw new Error(
+          `Deepgram API error: ${ttsResponse.status} ${ttsResponse.statusText}`,
+        );
+      }
+
+      const stream = ttsResponse.body;
 
       if (!stream) {
         throw new Error(
@@ -166,7 +166,7 @@ export async function POST(req: Request) {
         })
         .where(eq(friends.id, friend.id));
 
-      return new Response(stream, {
+      return new NextResponse(stream, {
         headers: {
           "Content-Type": "audio/mpeg",
           "Content-Disposition": "inline",
@@ -177,13 +177,8 @@ export async function POST(req: Request) {
     }
   } catch (error) {
     console.error(error);
-
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    const status = axios.isAxiosError(error)
-      ? (error.response?.status ?? 500)
-      : 500;
-
-    return NextResponse.json({ message: errorMessage }, { status });
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
